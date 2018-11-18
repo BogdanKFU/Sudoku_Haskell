@@ -14,4 +14,4 @@ generateSudoku :: [Char] -> IO()
 generateSudoku size = do
                         putStrLn ("Generation is in progress")
                         {- Запускается генерация ячеек -}
-						{- Отображение сгенерированной игры -}
+                        {- Отображение сгенерированной игры -}

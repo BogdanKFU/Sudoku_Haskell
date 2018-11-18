@@ -1,6 +1,5 @@
 module Main where
 
-import Lib
 import Sudoku
 
 -- Это главный метод для запуска программы
