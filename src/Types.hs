@@ -60,6 +60,6 @@ setCells game cells = game {
                            }
 -- Setter for gameSquares	
 setGameSquares :: Game -> [Square] -> Game
-setGameSquares game squares = do game {
-                                       gameSquares = squares
-                                      }
+setGameSquares game squares = game {
+                                    gameSquares = squares
+                                   }
