@@ -5,6 +5,12 @@ module Types where
 где cell - объект типа Cell -}
 {- Тип Ячейка - элементарная единица поля,
 принимает на вход visable, value, numbers of square -}
+
+type Coordinate = (Int, Int)
+
+gameSize :: Int
+gameSize = 9
+
 data Cell = Cell {
                    visible :: Bool
                  , value :: Int
@@ -31,11 +37,11 @@ setSquares cell squares = cell {
 
 -- Тип Поле, принимает на вход массив ячеек
 data Square = Square {
-                       squareCells :: [(Int, Int)]
+                       squareCells :: [Cell]
                      } deriving Show
 
 -- Setter for squareCells
-setSquareCells :: Square -> [(Int, Int)] -> Square
+setSquareCells :: Square -> [Cell] -> Square
 setSquareCells square squareCells = square {
                                             squareCells = squareCells
                                            }
