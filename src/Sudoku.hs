@@ -36,24 +36,28 @@ gougeOut cells flook iterator = do if iterator >= (gameSize ^ 2)
                                                       do
                                                          cellsNotIO <- cells
                                                          let temp = (cellsNotIO !! i) !! j
-                                                         let flook = replaceElementForDoubleList flook i j 1
                                                          let cell = setVisible temp False
-                                                         let cells = replaceElementForDoubleList cells i j cell
+                                                         print flook
+                                                         print cellsNotIO
+                                                         let flook = replaceElementForDoubleList flook i j 1
+                                                         print flook
+                                                         let cells = replaceElementForDoubleList cellsNotIO i j cell
                                                          --if checkPossibleToSolve cells
                                                             --then
                                                                  --let cells = replaceElementForDoubleList cells i j temp
                                                          gougeOut (pure cells) flook (iterator + 1)
-                                                 else gougeOut cells flook iterator
+                                                 else gougeOut cells flook (iterator + 1)
+
 
 
 --заменяет элемент в двумерном списке
 replaceElementForDoubleList :: [[a]] -> Int -> Int -> a -> [[a]]
-replaceElementForDoubleList list index j arg = if (index < length list - 1) && (index /= 0)
+replaceElementForDoubleList list index j arg = if (index < (length list) - 1) && (index /= 0)
                                         then (take index list) ++ ((replaceElement (list !! index) j arg) : drop (index + 1) list)
                                         else
                                             if (index == 0)
 									           then (replaceElement (list !! index) j arg) : (drop 1 list)
-                                               else (take (index - 1) list) ++ [(replaceElement (list !! index) j arg)]
+                                               else (take index list) ++ [(replaceElement (list !! index) j arg)]
 --заменяет элемент в списке
 replaceElement :: [a] -> Int -> a -> [a]
 replaceElement list index arg = if (index < length list - 1) && (index /= 0)
@@ -61,7 +65,7 @@ replaceElement list index arg = if (index < length list - 1) && (index /= 0)
                                         else
                                             if (index == 0)
 									           then arg : (drop 1 list)
-                                               else (take (index - 1) list) ++ [arg]
+                                               else (take index list) ++ [arg]
 
 --заполнить массив непосещенных ячеек
 generateFlook :: Int -> [[Int]]
