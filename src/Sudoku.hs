@@ -48,14 +48,18 @@ transpose:: [[a]]-> [[a]]
 transpose ([]:_) = []
 transpose x = (map head x) : transpose (map tail x)
 
---Поменять две строки в пределах ее района
+--Поменять две строки в пределах их района
 swapRows:: [[a]] -> IO [[a]]
 swapRows xs =do
-                   district <- getRandom 1 3
+                   district <- getRandom 0 2
                    x <-getRandom 1 3
-                   y <- getRandom 1 3
-                   let randI = (x *district) -1
-                   let randJ = (y *district) -1
+                   y <- getRandomNoDublicate x 1 3
+                   let numSwRows = ((3 *district)+x-1,(3 *district)+y -1)
+                   let randI | fst numSwRows <= snd numSwRows = fst numSwRows
+                             | fst numSwRows > snd numSwRows = snd numSwRows
+
+                   let randJ | fst numSwRows <= snd numSwRows = snd numSwRows
+                             | fst numSwRows > snd numSwRows = fst numSwRows
                    let elemI = xs !! randI
                    let elemJ = xs !! randJ
                    let left = take randI xs
@@ -64,7 +68,7 @@ swapRows xs =do
                    let mas = left ++ [elemJ] ++ middle ++ [elemI] ++ right
                    return mas
                    
-		
+--Поменять два столбца в пределах их района		
 swapColumns:: [[a]] ->IO [[a]]
 swapColumns xs = do 
                    let transposes = transpose xs
@@ -74,14 +78,20 @@ swapColumns xs = do
 --поменять местами два района по строкам
 --swapRowsArea:: [[a]] -> IO [[a]]
 swapRowsArea xs = do
-                    district1Num <- getRandom 1 3
-                    district2Num <- getRandom 1 3
-                    let district1 = getTripleFromArea 3 district1Num xs
-                    let district2 = getTripleFromArea 3 district1Num xs
-                    let left = take district1Num xs
-                    let middle = take(district2Num - district1Num - 1) (drop(district1Num +1) xs)
-                    let right = drop (district2Num +1) xs
-                    let mas = left ++ district2 ++ middle ++ district2 ++ right
+                    district1Num <- getRandom 0 2
+                    district2Num <- getRandomNoDublicate district1Num 1 3
+                    let ind1 | district1Num <= district2Num = district1Num
+                             | district1Num > district2Num = district2Num
+
+                    let ind2 | district1Num <= district2Num = district2Num
+                             | district1Num > district2Num = district1Num
+
+                    let district1 = getTripleFromArea 3 ind1 xs
+                    let district2 = getTripleFromArea 3 ind2 xs
+                    let left = take (ind1*3) xs
+                    let middle = take((ind2 - ind1 - 1)*3) (drop((ind1+1)*3) xs)
+                    let right = drop ((ind2+1)*3) xs
+                    let mas = left ++ district2 ++ middle ++ district1 ++ right
                     return mas
                     
 --count - количество элементов в Area, в нашем случае это 3
@@ -90,8 +100,16 @@ getTripleFromArea 0 _ _ = []
 getTripleFromArea count numberDistrict xs = elem : getTripleFromArea (count-1) numberDistrict xs where
                                               elem = xs !! ((numberDistrict*3)-count)
 
-					
-
+--В качестве value подаем ранее полученное значение, чтобы не появлялось одинаковых значений
+getRandomNoDublicate:: Int -> Int -> Int -> IO Int
+getRandomNoDublicate value begin end = do
+                                         random <- getRandom begin end
+                                         if value == random 
+                                         then getRandomNoDublicate value begin end
+                                         else
+                                          return random
+											   
+											   
 getRandom:: Int -> Int -> IO Int
 getRandom begin end = do
          g <- newStdGen
