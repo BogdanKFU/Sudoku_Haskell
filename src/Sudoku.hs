@@ -37,16 +37,13 @@ gougeOut cells flook iterator = do if iterator >= (gameSize ^ 2)
                                                          cellsNotIO <- cells
                                                          let temp = (cellsNotIO !! i) !! j
                                                          let cell = setVisible temp False
-                                                         print flook
-                                                         print cellsNotIO
-                                                         let flook = replaceElementForDoubleList flook i j 1
-                                                         print flook
+                                                         let f = replaceElementForDoubleList flook i j 1
                                                          let cells = replaceElementForDoubleList cellsNotIO i j cell
                                                          --if checkPossibleToSolve cells
                                                             --then
                                                                  --let cells = replaceElementForDoubleList cells i j temp
-                                                         gougeOut (pure cells) flook (iterator + 1)
-                                                 else gougeOut cells flook (iterator + 1)
+                                                         gougeOut (pure cells) f (iterator + 1)
+                                                 else gougeOut cells flook iterator
 
 
 
