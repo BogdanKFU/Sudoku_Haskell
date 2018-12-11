@@ -14,8 +14,8 @@ getFieldValues:: IO [[Int]]
 getFieldValues = do 
              field <- generateField 10  $getListValuesFromCell $ generateValues 9
              return field
-			 
-			 
+
+
 --сколько задано итераций - столько раз будет перемешан лист 			
 generateField:: Int -> [[a]] -> IO [[a]]
 generateField iteration xs = do 
@@ -24,7 +24,7 @@ generateField iteration xs = do
                   else
                      generateField (iteration-1) mixList
 
-						
+
 --рандомно выбирается способ перемешивания
 mix::[[a]] -> IO[[a]]
 mix xs = do
@@ -122,7 +122,7 @@ swapRowsArea xs = do
                     let right = drop ((ind2+1)*3) xs
                     let mas = left ++ district2 ++ middle ++ district1 ++ right
                     return mas
-                		
+
 --count - количество элементов в Area, в нашем случае это 3
 getTripleFromArea:: Int -> Int -> [[a]] -> [[a]]
 getTripleFromArea 0 _ _ = []
@@ -143,7 +143,7 @@ getRandomNoDublicate value begin end = do
                                          then getRandomNoDublicate value begin end
                                          else
                                           return random
-											   					   
+
 getRandom:: Int -> Int -> IO Int
 getRandom begin end = do
          g <- newStdGen
