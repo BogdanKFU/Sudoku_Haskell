@@ -9,7 +9,6 @@ main = do
          size <- getLine
          let names = [size]
          putStrLn ("Chosen size of sudoku: " ++ size)
-         generateSudoku size
 {-
 Тут происходит генерация поля судоку и отображение на экране
 -}

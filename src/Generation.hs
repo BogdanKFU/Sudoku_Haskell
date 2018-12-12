@@ -56,7 +56,7 @@ generateValues size = (defineLineValues gameSize $take gameSize $drop ((gameSize
 --вспомогательная функция для generateValues, принимает размер поля и лист данных из которого генерировать ячейки
 defineLineValues:: Int -> [Int] -> [Cell]
 defineLineValues 0 _ = []
-defineLineValues x xs = defineLineValues (x-1) xs ++ [Cell True (xs !! (x-1)) []]
+defineLineValues x xs = defineLineValues (x-1) xs ++ [Cell True (xs !! (x-1))]
 
 --преобразование двумерного листа cell в лист их значений
 --Пример запроса getListValuesFromCell $ generateValues 9
