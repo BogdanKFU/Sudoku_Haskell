@@ -91,8 +91,6 @@ drawCell (one, two) win (Just mark)
       markColor
        | win == Just mark = light orange
        | otherwise = case mark of
-          One | one < two -> greyN (max 0.5 (1 - fromIntegral (two - one) / 10))
-          Two | one > two -> greyN (max 0.5 (1 - fromIntegral (one - two) / 10))
           _         -> white
 
 -- | Нарисовать фишку.
