@@ -2,11 +2,9 @@ module Main where
 
 import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss
-import Graphics.Gloss.Juicy
 import Sudoku
 import Data.List (transpose)
 import Data.Foldable
-import System.IO.Unsafe
 
 -- Это главный метод для запуска программы
 main :: IO ()
@@ -22,7 +20,7 @@ main = do
 -- =========================================
 
 -- | Фишки игроков.
-data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine | None
+data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine
   deriving (Eq, Show)
 
 -- | Клетка игрового поля.
@@ -75,7 +73,7 @@ drawGrid = color white (pictures (hs ++ vs))
     m = fromIntegral boardHeight
 
 -- | Нарисовать фишки на игровом поле.
-drawBoard :: Maybe Mark -> Board -> Maybe Picture
+drawBoard :: Maybe Mark -> Board -> Picture
 drawBoard win board = pictures (map pictures drawCells)
   where
     drawCells = map drawRow (zip [0..] board)
@@ -85,12 +83,20 @@ drawBoard win board = pictures (map pictures drawCells)
           (drawCell (estimate board) win cell)
 
 -- | Нарисовать фишку в клетке поля (если она там есть).
-drawCell :: (Int, Int) -> Maybe Mark -> Cell -> Maybe Picture
-drawCell _ _ Nothing = drawMark None
-drawCell (one, two) win (Just mark) = drawMark mark
+drawCell :: (Int, Int) -> Maybe Mark -> Cell -> Picture
+drawCell _ _ Nothing = blank
+drawCell (one, two) win (Just mark)
+    = color markColor (drawMark mark)
+    where
+      markColor
+       | win == Just mark = light orange
+       | otherwise = case mark of
+          One | one < two -> greyN (max 0.5 (1 - fromIntegral (two - one) / 10))
+          Two | one > two -> greyN (max 0.5 (1 - fromIntegral (one - two) / 10))
+          _         -> white
 
 -- | Нарисовать фишку.
-drawMark :: Mark -> Maybe Picture
+drawMark :: Mark -> Picture
 drawMark One = drawOne
 drawMark Two = drawTwo
 drawMark Three = drawThree
@@ -100,37 +106,51 @@ drawMark Six = drawSix
 drawMark Seven = drawSeven
 drawMark Eight = drawEight
 drawMark Nine = drawNine
-drawMark None = drawNothing
 
-drawOne :: Maybe Picture
-drawOne = unsafePerformIO $ loadJuicyPNG "./img/one.png"
+drawOne :: Picture
+drawOne = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawTwo :: Maybe Picture
-drawTwo = unsafePerformIO $ loadJuicyPNG "./img/two.png"
+drawTwo :: Picture
+drawTwo = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawThree :: Maybe Picture
-drawThree = unsafePerformIO $ loadJuicyPNG "./img/three.png"
+drawThree :: Picture
+drawThree = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawFour :: Maybe Picture
-drawFour = unsafePerformIO $ loadJuicyPNG "./img/four.png"
+drawFour :: Picture
+drawFour = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawFive :: Maybe Picture
-drawFive = unsafePerformIO $ loadJuicyPNG "./img/five.png"
+drawFive :: Picture
+drawFive = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawSix :: Maybe Picture
-drawSix = unsafePerformIO $ loadJuicyPNG "./img/six.png"
+drawSix :: Picture
+drawSix = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawSeven :: Maybe Picture
-drawSeven = unsafePerformIO $ loadJuicyPNG "./img/seven.png"
+drawSeven :: Picture
+drawSeven = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawEight :: Maybe Picture
-drawEight = unsafePerformIO $ loadJuicyPNG "./img/eight.png"
+drawEight :: Picture
+drawEight = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
-drawNine :: Maybe Picture
-drawNine = unsafePerformIO $ loadJuicyPNG "./img/nine.png"
-
-drawNothing :: Maybe Picture
-drawNothing = unsafePerformIO $ loadJuicyPNG "./img/nothing.png"
+drawNine :: Picture
+drawNine = pictures
+  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
+  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
 -- | Получить координаты клетки под мышкой.
 mouseToCell :: Point -> (Int, Int)
