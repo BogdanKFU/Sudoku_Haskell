@@ -1,18 +1,19 @@
 module Main where
 
-import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
 import Graphics.Gloss
 import Sudoku
+import Types
 import Data.List (transpose)
 
 -- Это главный метод для запуска программы
 main :: IO ()
 main = do
-  play display bgColor fps initGame drawGame handleGame updateGame
-  where
-    display = InWindow "Sudoku" (screenWidth, screenHeight) (200, 200)
-    bgColor = black   -- цвет фона
-    fps     = 60      -- кол-во кадров в секунду
+    let display = InWindow "Sudoku" (screenWidth, screenHeight) (200, 200)
+    let bgColor = black   -- цвет фона
+    let fps     = 60      -- кол-во кадров в секунду
+    playIO display bgColor fps initGame drawGame handleGame updateGame
+
 
 -- =========================================
 -- Модель игры
@@ -23,10 +24,10 @@ data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine
   deriving (Eq, Show)
 
 -- | Клетка игрового поля.
-type Cell = Maybe Mark
+type Cell_UI = Maybe Mark
 
 -- | Игровое поле.
-type Board = [[Cell]]
+type Board = [[Cell_UI]]
 
 -- | Состояние игры.
 data Game = Game
@@ -36,8 +37,6 @@ data Game = Game
   }
 
 -- | Начальное состояние игры.
--- Игровое поле — пусто.
--- Первый игрок ходит за крестики.
 initGame :: Game
 initGame = Game
   { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
@@ -45,21 +44,25 @@ initGame = Game
   , gameWinner = Nothing
   }
 
+
+
 -- =========================================
 -- Отрисовка игры
 -- =========================================
 
 
 -- | Отобразить игровое поле.
-drawGame :: Game -> Picture
-drawGame game = translate (-w) (-h) (scale c c (pictures
-  [ drawGrid
-  , drawBoard (gameWinner game) (gameBoard game)
-  ]))
-  where
-    c = fromIntegral cellSize
-    w = fromIntegral screenWidth  / 2
-    h = fromIntegral screenHeight / 2
+drawGame :: Game -> IO Picture
+drawGame game = do
+                   let c = fromIntegral cellSize
+                   let w = fromIntegral screenWidth  / 2
+                   let h = fromIntegral screenHeight / 2
+                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
+                   return g
+                  --   do
+             --values <- generateSudoku []
+             --let game = Game (getGenerateField values) One Nothing
+             --return game
 
 -- | Сетка игрового поля.
 drawGrid :: Picture
@@ -82,7 +85,7 @@ drawBoard win board = pictures (map pictures drawCells)
           (drawCell (estimate board) win cell)
 
 -- | Нарисовать фишку в клетке поля (если она там есть).
-drawCell :: (Int, Int) -> Maybe Mark -> Cell -> Picture
+drawCell :: (Int, Int) -> Maybe Mark -> Cell_UI -> Picture
 drawCell _ _ Nothing = blank
 drawCell (one, two) win (Just mark)
     = color markColor (drawMark mark)
@@ -90,7 +93,7 @@ drawCell (one, two) win (Just mark)
       markColor
        | win == Just mark = light orange
        | otherwise = white
-	   
+
 -- | Нарисовать фишку.
 drawMark :: Mark -> Picture
 drawMark One =  translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
@@ -111,26 +114,25 @@ mouseToCell (x, y) = (i, j)
     j = floor (y + fromIntegral screenHeight / 2) `div` cellSize
 	
 -- | Обработка событий.
-handleGame :: Event -> Game -> Game
-handleGame (EventKey (MouseButton LeftButton) Down _ mouse) = placeMark (mouseToCell mouse)
-handleGame _ = id
+handleGame :: Event -> Game -> IO Game
+handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = placeMark (mouseToCell mouse) game
+handleGame _ w = castIO w
 
 -- | Поставить фишку и сменить игрока (если возможно).
-placeMark :: (Int, Int) -> Game -> Game
-placeMark (i, j) game =
-  case gameWinner game of
-    Just _ -> game    -- если есть победитель, то поставить фишку нельзя
-    Nothing -> case modifyAt j (modifyAt i place) (gameBoard game) of
-      Nothing -> game -- если поставить фишку нельзя, ничего не изменится
-      Just newBoard -> game
+placeMark :: (Int, Int) -> Game -> IO Game
+placeMark (i, j) game = do
+    let place Nothing = Just (Just (gamePlayer game))
+    let place _       = Just (Just (gamePlayer game))
+
+    case modifyAt j (modifyAt i place) (gameBoard game) of
+      Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
+      Just newBoard -> castIO game
         { gameBoard  = newBoard
-        , gamePlayer = switchPlayer (gamePlayer game)
+        , gamePlayer = switchPlayer (One)
         , gameWinner = winner newBoard
         }
-  where
-    place Nothing = Just (Just (gamePlayer game))
-    place _       = Just (Just (switchPlayer (gamePlayer game))) -- если клетка занята, поставить фишку нельзя 
-	
+
+
 -- | Сменить текущего игрока.
 switchPlayer :: Mark -> Mark
 switchPlayer One = Two
@@ -202,8 +204,8 @@ modifyAt i f (x:xs) = case modifyAt (i - 1) f xs of
 -- | Обновление игры.
 -- В этой игре все изменения происходят только по действиям игрока,
 -- поэтому функция обновления — это тождественная функция.
-updateGame :: Float -> Game -> Game
-updateGame _ = id
+updateGame :: Float -> Game -> IO Game
+updateGame _ w= castIO w
 	
 -- | Сколько фишек подряд необходимо для выигрыша.
 winnerStreak :: Int
@@ -225,4 +227,28 @@ screenWidth  = cellSize * boardWidth
 
 -- | Высота экрана в пикселях.
 screenHeight :: Int
-screenHeight = cellSize * boardHeight
+screenHeight = cellSize * boardHeight				  
+
+
+getGenerateField:: [[Cell]] -> [[Cell_UI]]
+getGenerateField (x:[]) = [getLineGenerateField x]
+getGenerateField (x:xs) = getLineGenerateField x : getGenerateField xs
+
+getLineGenerateField::[Cell] -> [Cell_UI]
+getLineGenerateField [] = []
+getLineGenerateField (x:xs) = k : getLineGenerateField xs where 
+           k | visible x == False = Nothing
+             | value x == 1 = Just One
+             | value x == 2 = Just Two
+             | value x == 3 = Just Three
+             | value x == 4 = Just Four
+             | value x == 5 = Just Five
+             | value x == 6 = Just Six
+             | value x == 7 = Just Seven
+             | value x == 8 = Just Eight
+             | value x == 9 = Just Nine
+			  
+
+castIO :: Game -> IO Game
+castIO game = do 
+                return game
