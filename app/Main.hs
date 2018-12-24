@@ -57,12 +57,17 @@ drawGame game = do
                    let c = fromIntegral cellSize
                    let w = fromIntegral screenWidth  / 2
                    let h = fromIntegral screenHeight / 2
-                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
-                   return g
-                  --   do
-             --values <- generateSudoku []
-             --let game = Game (getGenerateField values) One Nothing
-             --return game
+
+                   if(firstRunning (boardWidth-1) (boardHeight-1) (gameBoard game) == True) then do
+                       values <- generateSudoku []
+                       let game = Game (getGenerateField values) One Nothing
+                       let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
+                       return g
+				   else do
+                        let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
+                        return g
+                
+             
 
 -- | Сетка игрового поля.
 drawGrid :: Picture
@@ -252,3 +257,9 @@ getLineGenerateField (x:xs) = k : getLineGenerateField xs where
 castIO :: Game -> IO Game
 castIO game = do 
                 return game
+
+firstRunning ::Int -> Int -> Board -> Bool
+firstRunning 0 0 _ =  True
+firstRunning x 0 board = firstRunning (x-1) (boardHeight-1) board
+firstRunning x y board = if(board !! x !! y == Nothing) then firstRunning x (y-1) board
+                         else False
