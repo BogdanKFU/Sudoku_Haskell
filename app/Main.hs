@@ -90,30 +90,28 @@ drawCell (one, two) win (Just mark)
     where
       markColor
        | win == Just mark = light orange
-       | otherwise = case mark of
-          _         -> white
-
+       | otherwise = white
+	   
 -- | Нарисовать фишку.
 drawMark :: Mark -> Picture
-drawMark One = drawOne
-drawMark Two = drawTwo
-drawMark Three = drawThree
-drawMark Four = drawFour
-drawMark Five = drawFive
-drawMark Six = drawSix
-drawMark Seven = drawSeven
-drawMark Eight = drawEight
-drawMark Nine = drawNine
-
+drawMark One =  translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
+drawMark Two =  translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "2")
+drawMark Three = translate (-0.38) (-0.25) $ scale 0.01 0.005 (text "3")
+drawMark Four = translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "4")
+drawMark Five = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "5")
+drawMark Six = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "6")
+drawMark Seven = translate (-0.38) (-0.25) $ scale 0.008 0.005 (text "7")
+drawMark Eight = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "8")
+drawMark Nine = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
 drawOne :: Picture
 drawOne = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
+  [ color ballColor $ text "asdasdas"
+  ]
+  where
+    ballColor = dark red 
 
 drawTwo :: Picture
-drawTwo = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
+drawTwo = rectangleSolid 0.1 0.5
 
 drawThree :: Picture
 drawThree = pictures
@@ -141,9 +139,7 @@ drawSeven = pictures
   , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
 drawEight :: Picture
-drawEight = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
+drawEight = thickCircle 0.3 0.1
 
 drawNine :: Picture
 drawNine = pictures
