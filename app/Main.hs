@@ -129,7 +129,7 @@ placeMark (i, j) game =
         }
   where
     place Nothing = Just (Just (gamePlayer game))
-    place _       = Nothing -- если клетка занята, поставить фишку нельзя 
+    place _       = Just (Just (switchPlayer (gamePlayer game))) -- если клетка занята, поставить фишку нельзя 
 	
 -- | Сменить текущего игрока.
 switchPlayer :: Mark -> Mark
