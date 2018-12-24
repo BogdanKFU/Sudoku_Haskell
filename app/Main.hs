@@ -127,7 +127,7 @@ placeMark (i, j) game = do
       Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
       Just newBoard -> castIO game
         { gameBoard  = newBoard
-        , gamePlayer = gamePlayer
+        , gamePlayer = switchPlayer (gamePlayer game)
         , gameWinner = winner newBoard
         }
 
