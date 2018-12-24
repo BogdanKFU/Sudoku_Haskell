@@ -45,7 +45,6 @@ initGame = Game
   }
 
 
-
 -- =========================================
 -- Отрисовка игры
 -- =========================================
@@ -122,13 +121,13 @@ handleGame _ w = castIO w
 placeMark :: (Int, Int) -> Game -> IO Game
 placeMark (i, j) game = do
     let place Nothing = Just (Just (gamePlayer game))
-    let place _       = Just (Just (gamePlayer game))
+    let place _       = Just (Just (switchPlayer (gamePlayer game))) 
 
     case modifyAt j (modifyAt i place) (gameBoard game) of
       Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
       Just newBoard -> castIO game
         { gameBoard  = newBoard
-        , gamePlayer = switchPlayer (gamePlayer game)
+        , gamePlayer = gamePlayer
         , gameWinner = winner newBoard
         }
 
