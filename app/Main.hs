@@ -4,14 +4,13 @@ import Graphics.Gloss.Interface.Pure.Game
 import Graphics.Gloss
 import Sudoku
 import Data.List (transpose)
-import Data.Foldable
 
 -- Это главный метод для запуска программы
 main :: IO ()
 main = do
   play display bgColor fps initGame drawGame handleGame updateGame
   where
-    display = InWindow "Крестики-нолики" (screenWidth, screenHeight) (200, 200)
+    display = InWindow "Sudoku" (screenWidth, screenHeight) (200, 200)
     bgColor = black   -- цвет фона
     fps     = 60      -- кол-во кадров в секунду
 
@@ -103,48 +102,6 @@ drawMark Six = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "6")
 drawMark Seven = translate (-0.38) (-0.25) $ scale 0.008 0.005 (text "7")
 drawMark Eight = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "8")
 drawMark Nine = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
-drawOne :: Picture
-drawOne = pictures
-  [ color ballColor $ text "asdasdas"
-  ]
-  where
-    ballColor = dark red 
-
-drawTwo :: Picture
-drawTwo = rectangleSolid 0.1 0.5
-
-drawThree :: Picture
-drawThree = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
-
-drawFour :: Picture
-drawFour = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
-
-drawFive :: Picture
-drawFive = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
-
-drawSix :: Picture
-drawSix = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
-
-drawSeven :: Picture
-drawSeven = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
-
-drawEight :: Picture
-drawEight = thickCircle 0.3 0.1
-
-drawNine :: Picture
-drawNine = pictures
-  [ polygon [(-0.4,  0.3), (-0.3,  0.4), ( 0.4, -0.3), ( 0.3, -0.4)]
-  , polygon [(-0.4, -0.3), (-0.3, -0.4), ( 0.4,  0.3), ( 0.3,  0.4)] ]
 
 -- | Получить координаты клетки под мышкой.
 mouseToCell :: Point -> (Int, Int)
@@ -177,7 +134,14 @@ placeMark (i, j) game =
 -- | Сменить текущего игрока.
 switchPlayer :: Mark -> Mark
 switchPlayer One = Two
-switchPlayer Two = One
+switchPlayer Two = Three
+switchPlayer Three = Four
+switchPlayer Four = Five
+switchPlayer Five = Six
+switchPlayer Six = Seven
+switchPlayer Seven = Eight
+switchPlayer Eight = Nine
+switchPlayer Nine = One
 
 -- | Определить победителя на игровом поле, если такой есть.
 winner :: Board -> Maybe Mark
