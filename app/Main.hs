@@ -24,7 +24,10 @@ data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine
   deriving (Eq, Show)
 
 -- | Клетка игрового поля.
-type Cell_UI = Maybe Mark
+data Cell_UI = Cell_UI
+           { mark :: Maybe Mark,
+             static :: Bool
+			 }
 
 -- | Игровое поле.
 type Board = [[Cell_UI]]
@@ -39,7 +42,7 @@ data Game = Game
 -- | Начальное состояние игры.
 initGame :: Game
 initGame = Game
-  { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
+  { gameBoard  = replicate boardHeight (replicate boardWidth (Cell_UI Nothing False))
   , gamePlayer = One
   , gameWinner = Nothing
   }
@@ -85,8 +88,8 @@ drawBoard win board = pictures (map pictures drawCells)
 
 -- | Нарисовать фишку в клетке поля (если она там есть).
 drawCell :: (Int, Int) -> Maybe Mark -> Cell_UI -> Picture
-drawCell _ _ Nothing = blank
-drawCell (one, two) win (Just mark)
+drawCell _ _ (Cell_UI Nothing False) = blank
+drawCell (one, two) win (Cell_UI (Just mark) False)
     = color markColor (drawMark mark)
     where
       markColor
@@ -251,16 +254,16 @@ getGenerateField (x:xs) = getLineGenerateField x : getGenerateField xs
 getLineGenerateField::[Cell] -> [Cell_UI]
 getLineGenerateField [] = []
 getLineGenerateField (x:xs) = k : getLineGenerateField xs where 
-           k | visible x == False = Nothing
-             | value x == 1 = Just One
-             | value x == 2 = Just Two
-             | value x == 3 = Just Three
-             | value x == 4 = Just Four
-             | value x == 5 = Just Five
-             | value x == 6 = Just Six
-             | value x == 7 = Just Seven
-             | value x == 8 = Just Eight
-             | value x == 9 = Just Nine
+           k | visible x == False = Cell_UI Nothing False 
+             | value x == 1 = Cell_UI (Just One) False 
+             | value x == 2 = Cell_UI (Just Two) False 
+             | value x == 3 = Cell_UI (Just Three) False 
+             | value x == 4 = Cell_UI (Just Four) False 
+             | value x == 5 = Cell_UI (Just Five) False 
+             | value x == 6 = Cell_UI (Just Six) False 
+             | value x == 7 = Cell_UI (Just Seven) False 
+             | value x == 8 = Cell_UI (Just Eight) False 
+             | value x == 9 = Cell_UI (Just Nine) False
 			  
 
 castIO :: Game -> IO Game
@@ -270,5 +273,5 @@ castIO game = do
 firstRunning ::Int -> Int -> Board -> Bool
 firstRunning 0 0 _ =  True
 firstRunning x 0 board = firstRunning (x-1) (boardHeight-1) board
-firstRunning x y board = if(board !! x !! y == Nothing) then firstRunning x (y-1) board
+firstRunning x y board = if(mark (board !! x !! y) == Nothing) then firstRunning x (y-1) board
                          else False
