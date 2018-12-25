@@ -125,7 +125,7 @@ mouseToCell (x, y) = (i, j)
 -- | Обработка событий.
 handleGame :: Event -> Game -> IO Game
 handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = placeMark (mouseToCell mouse) False game
-handleGame (EventKey (MouseButton RightButton) Down _ mouse) game = placeMark (0, 0) True game
+handleGame (EventKey (MouseButton RightButton) Down _ mouse) game = placeMark (-1, -1) True game
 handleGame _ w = castIO w
 
 -- | Поставить фишку и сменить игрока (если возможно).
