@@ -141,17 +141,6 @@ handleGame _ w = castIO w
 -- | Поставить фишку и сменить игрока (если возможно).
 placeMark :: (Int, Int) -> Bool -> Game -> IO Game
 placeMark (i, j) isGeneration game = do
- writeText "assaasdasdasddsa"
- if(hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False &&(checkEquals (generatedField game) (gameBoard game))) then do
-   let place _       = Nothing
-   case modifyAt j (modifyAt i place) (gameBoard game) of
-      Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
-      Just newBoard -> castIO game
-        { gameBoard  = newBoard
-        , numberValue = changeValue (numberValue game)
-        , gameWinner = winner newBoard
-        }
- else do
     let place Nothing = Just (Just (numberValue game))
     let place StaticOne = Nothing
     let place StaticTwo = Nothing
@@ -176,17 +165,26 @@ placeMark (i, j) isGeneration game = do
         , gameWinner = winner newBoard
 		, generatedField = generates
         }
-					   
-					   
+  
     else do
-
-     case modifyAt j (modifyAt i place) (gameBoard game) of
-      Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
-      Just newBoard -> castIO game
-        { gameBoard  = newBoard
-        , numberValue = changeValue (numberValue game)
-        , gameWinner = winner newBoard
-        }
+--	   if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
+--            writeText("a")
+ --           let place _       = Nothing
+ --           case modifyAt j (modifyAt i place) (gameBoard game) of
+  --                Nothing ->castIO game  -- если поставить фишку нельзя, ничего не изменится
+  --                Just newBoard -> castIO game
+  --                 { gameBoard  = newBoard
+   --                , numberValue = changeValue (numberValue game)
+   --                , gameWinner = winner newBoard
+   --                }
+	--   else do
+             case modifyAt j (modifyAt i place) (gameBoard game) of
+               Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
+               Just newBoard -> castIO game
+                { gameBoard  = newBoard
+                , numberValue = changeValue (numberValue game)
+                , gameWinner = winner newBoard
+                }
 
 
 -- | Сменить текущего игрока.
@@ -315,13 +313,13 @@ hasEmptyCells x y board = if(board !! x !! y /= Nothing) then hasEmptyCells x (y
                          else True
 						 
 checkEquals:: [[Cell_UI]]->[[Cell_UI]] ->Bool
-checkEquals [] [] = False
-checkEquals (x:first) (y:second) = if (checkLineEquals x y) then True
-                                                        else checkEquals first second
+checkEquals [] [] = True
+checkEquals (x:first) (y:second) = if (checkLineEquals x y) then checkEquals first second
+                                                        else False
 
 checkLineEquals:: [Cell_UI] -> [Cell_UI] -> Bool
-checkLineEquals [] [] = False
-checkLineEquals (x:xs) (y:ys) = if (x == y) then True
+checkLineEquals [] [] = True
+checkLineEquals (x:xs) (y:ys) = if (x /= y) then False
                                 else checkLineEquals xs ys
 
 writeText:: String -> IO()
