@@ -19,7 +19,7 @@ main = do
 -- Модель игры
 -- =========================================
 
--- | Фишки игроков.
+-- | Виды отметок
 data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine | StaticOne | StaticTwo | StaticThree | StaticFour | StaticFive | StaticSix | StaticSeven | StaticEight | StaticNine
   deriving (Eq, Show)
 
@@ -32,7 +32,7 @@ type Board = [[Cell_UI]]
 -- | Состояние игры.
 data Game = Game
   { gameBoard  :: Board       -- ^ Игровое поле.
-  , gamePlayer :: Mark        -- ^ Чей ход?
+  , numberValue :: Mark        -- ^ Чей ход?
   , gameWinner :: Maybe Mark  -- ^ Победитель.
   }
 
@@ -40,7 +40,7 @@ data Game = Game
 initGame :: Game
 initGame = Game
   { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
-  , gamePlayer = One
+  , numberValue = One
   , gameWinner = Nothing
   }
 
@@ -73,7 +73,7 @@ drawGrid = color white (pictures (hs ++ vs))
     m = fromIntegral boardHeight
 
 	
--- | Нарисовать фишки на игровом поле.
+-- | Нарисовать числа на игровом поле.
 drawBoard :: Maybe Mark -> Board -> Picture
 drawBoard win board = pictures (map pictures drawCells)
   where
@@ -83,7 +83,7 @@ drawBoard win board = pictures (map pictures drawCells)
         drawCellAt (i, cell) = translate (0.5 + i) (0.5 + j)
           (drawCell (estimate board) win cell)
 
--- | Нарисовать фишку в клетке поля (если она там есть).
+-- | Нарисовать число в клетке поля (если оно там есть).
 drawCell :: (Int, Int) -> Maybe Mark -> Cell_UI -> Picture
 drawCell _ _ Nothing = blank
 drawCell (one, two) win (Just mark)
@@ -93,7 +93,7 @@ drawCell (one, two) win (Just mark)
        | win == Just mark = light orange
        | otherwise = white
 
--- | Нарисовать фишку.
+-- | Нарисовать число.
 drawMark :: Mark -> Picture
 drawMark One = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
 drawMark StaticOne = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
@@ -131,7 +131,7 @@ handleGame _ w = castIO w
 -- | Поставить фишку и сменить игрока (если возможно).
 placeMark :: (Int, Int) -> Bool -> Game -> IO Game
 placeMark (i, j) isGeneration game = do
-   let place Nothing = Just (Just (gamePlayer game))
+   let place Nothing = Just (Just (numberValue game))
    let place StaticOne = Nothing
    let place StaticTwo = Nothing
    let place StaticThree = Nothing
@@ -141,7 +141,7 @@ placeMark (i, j) isGeneration game = do
    let place StaticSeven = Nothing
    let place StaticEight = Nothing
    let place StaticNine = Nothing
-   let place _       = Just (Just (switchPlayer (gamePlayer game))) 
+   let place _       = Just (Just (changeValue (numberValue game))) 
   
    if(isGeneration == True) then do
       values <- generateSudoku []
@@ -150,7 +150,7 @@ placeMark (i, j) isGeneration game = do
        Nothing ->castIO game 
        Just newBoard -> castIO game
         { gameBoard  = newBoard
-        , gamePlayer = switchPlayer (gamePlayer game)
+        , numberValue = changeValue (numberValue game)
         , gameWinner = winner newBoard
         }
 					   
@@ -162,24 +162,24 @@ placeMark (i, j) isGeneration game = do
       Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
       Just newBoard -> castIO game
         { gameBoard  = newBoard
-        , gamePlayer = switchPlayer (gamePlayer game)
+        , numberValue = changeValue (numberValue game)
         , gameWinner = winner newBoard
         }
 
 
 -- | Сменить текущего игрока.
-switchPlayer :: Mark -> Mark
-switchPlayer One = Two
-switchPlayer Two = Three
-switchPlayer Three = Four
-switchPlayer Four = Five
-switchPlayer Five = Six
-switchPlayer Six = Seven
-switchPlayer Seven = Eight
-switchPlayer Eight = Nine
-switchPlayer Nine = One
+changeValue :: Mark -> Mark
+changeValue One = Two
+changeValue Two = Three
+changeValue Three = Four
+changeValue Four = Five
+changeValue Five = Six
+changeValue Six = Seven
+changeValue Seven = Eight
+changeValue Eight = Nine
+changeValue Nine = One
 
--- | Определить победителя на игровом поле, если такой есть.
+-- | Определить  на игровом поле, если такой есть.
 winner :: Board -> Maybe Mark
 winner board = getFirstWinner (map lineWinner allLines)
   where
@@ -241,7 +241,6 @@ modifyAt i f (x:xs) = case modifyAt (i - 1) f xs of
 updateGame :: Float -> Game -> IO Game
 updateGame _ w= castIO w
 	
--- | Сколько фишек подряд необходимо для выигрыша.
 winnerStreak :: Int
 winnerStreak = 4
 	
