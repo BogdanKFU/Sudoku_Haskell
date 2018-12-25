@@ -34,6 +34,7 @@ data Game = Game
   { gameBoard  :: Board       -- ^ Игровое поле.
   , numberValue :: Mark        -- ^ Чей ход?
   , gameWinner :: Maybe Mark  -- ^ Победитель.
+  , generatedField :: Board
   }
 
 -- | Начальное состояние игры.
@@ -42,6 +43,7 @@ initGame = Game
   { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
   , numberValue = One
   , gameWinner = Nothing
+  , generatedField = replicate boardHeight (replicate boardWidth Nothing)
   }
 
 
@@ -139,34 +141,46 @@ handleGame _ w = castIO w
 -- | Поставить фишку и сменить игрока (если возможно).
 placeMark :: (Int, Int) -> Bool -> Game -> IO Game
 placeMark (i, j) isGeneration game = do
-   let place Nothing = Just (Just (numberValue game))
-   let place StaticOne = Nothing
-   let place StaticTwo = Nothing
-   let place StaticThree = Nothing
-   let place StaticFour = Nothing
-   let place StaticFive = Nothing
-   let place StaticSix = Nothing
-   let place StaticSeven = Nothing
-   let place StaticEight = Nothing
-   let place StaticNine = Nothing
-   let place _       = Just (Just (changeValue (numberValue game))) 
+ writeText "assaasdasdasddsa"
+ if(hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False &&(checkEquals (generatedField game) (gameBoard game))) then do
+   let place _       = Nothing
+   case modifyAt j (modifyAt i place) (gameBoard game) of
+      Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
+      Just newBoard -> castIO game
+        { gameBoard  = newBoard
+        , numberValue = changeValue (numberValue game)
+        , gameWinner = winner newBoard
+        }
+ else do
+    let place Nothing = Just (Just (numberValue game))
+    let place StaticOne = Nothing
+    let place StaticTwo = Nothing
+    let place StaticThree = Nothing
+    let place StaticFour = Nothing
+    let place StaticFive = Nothing
+    let place StaticSix = Nothing
+    let place StaticSeven = Nothing
+    let place StaticEight = Nothing
+    let place StaticNine = Nothing
+    let place _       = Just (Just (changeValue (numberValue game))) 
   
-   if (isGeneration == True) then do
+    if(isGeneration == True) then do
       values <- generateSudoku []
-      let game = Game (getGenerateField values) One Nothing
+      let generates = getGenerateField values
+      let game = Game (generates) One Nothing (generatedField game)
       case modifyAt j (modifyAt i place) (gameBoard game) of
        Nothing ->castIO game 
        Just newBoard -> castIO game
         { gameBoard  = newBoard
         , numberValue = changeValue (numberValue game)
         , gameWinner = winner newBoard
+		, generatedField = generates
         }
 					   
 					   
-   else do
-    
+    else do
 
-    case modifyAt j (modifyAt i place) (gameBoard game) of
+     case modifyAt j (modifyAt i place) (gameBoard game) of
       Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
       Just newBoard -> castIO game
         { gameBoard  = newBoard
@@ -294,8 +308,21 @@ castIO :: Game -> IO Game
 castIO game = do 
                 return game
 
-firstRunning ::Int -> Int -> Board -> Bool
-firstRunning 0 0 _ =  True
-firstRunning x 0 board = firstRunning (x-1) (boardHeight-1) board
-firstRunning x y board = if(board !! x !! y == Nothing) then firstRunning x (y-1) board
-                         else False
+hasEmptyCells ::Int -> Int -> Board -> Bool
+hasEmptyCells 0 0 _ =  False
+hasEmptyCells x 0 board = hasEmptyCells (x-1) (boardHeight-1) board
+hasEmptyCells x y board = if(board !! x !! y /= Nothing) then hasEmptyCells x (y-1) board
+                         else True
+						 
+checkEquals:: [[Cell_UI]]->[[Cell_UI]] ->Bool
+checkEquals [] [] = False
+checkEquals (x:first) (y:second) = if (checkLineEquals x y) then True
+                                                        else checkEquals first second
+
+checkLineEquals:: [Cell_UI] -> [Cell_UI] -> Bool
+checkLineEquals [] [] = False
+checkLineEquals (x:xs) (y:ys) = if (x == y) then True
+                                else checkLineEquals xs ys
+
+writeText:: String -> IO()
+writeText a = putStrLn (a)
