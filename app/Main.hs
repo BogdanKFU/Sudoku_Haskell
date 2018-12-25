@@ -20,11 +20,11 @@ main = do
 -- =========================================
 
 -- | Фишки игроков.
-data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine
+data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine | StaticOne | StaticTwo | StaticThree | StaticFour | StaticFive | StaticSix | StaticSeven | StaticEight | StaticNine
   deriving (Eq, Show)
 
 -- | Клетка игрового поля.
-type Cell_UI = Maybe Mark
+type Cell_UI = Maybe Mark                                                   
 
 -- | Игровое поле.
 type Board = [[Cell_UI]]
@@ -95,15 +95,25 @@ drawCell (one, two) win (Just mark)
 
 -- | Нарисовать фишку.
 drawMark :: Mark -> Picture
-drawMark One =  translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
+drawMark One = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
+drawMark StaticOne = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "100")
 drawMark Two =  translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "2")
+drawMark StaticTwo =  translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "2")
 drawMark Three = translate (-0.38) (-0.25) $ scale 0.01 0.005 (text "3")
+drawMark StaticThree = translate (-0.38) (-0.25) $ scale 0.01 0.005 (text "3")
 drawMark Four = translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "4")
+drawMark StaticFour = translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "4")
 drawMark Five = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "5")
+drawMark StaticFive = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "5")
 drawMark Six = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "6")
+drawMark StaticSix = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "6")
 drawMark Seven = translate (-0.38) (-0.25) $ scale 0.008 0.005 (text "7")
+drawMark StaticSeven = translate (-0.38) (-0.25) $ scale 0.008 0.005 (text "7")
 drawMark Eight = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "8")
-drawMark Nine = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
+drawMark StaticEight = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "8")
+drawMark Nine= translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
+drawMark StaticNine = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
+
 
 -- | Получить координаты клетки под мышкой.
 mouseToCell :: Point -> (Int, Int)
@@ -121,6 +131,15 @@ handleGame _ w = castIO w
 placeMark :: (Int, Int) -> Game -> IO Game
 placeMark (i, j) game = do
    let place Nothing = Just (Just (gamePlayer game))
+   let place StaticOne = Nothing
+   let place StaticTwo = Nothing
+   let place StaticThree = Nothing
+   let place StaticFour = Nothing
+   let place StaticFive = Nothing
+   let place StaticSix = Nothing
+   let place StaticSeven = Nothing
+   let place StaticEight = Nothing
+   let place StaticNine = Nothing
    let place _       = Just (Just (switchPlayer (gamePlayer game))) 
   
    if(firstRunning (boardWidth-1) (boardHeight-1) (gameBoard game) == True) then do
@@ -252,15 +271,15 @@ getLineGenerateField::[Cell] -> [Cell_UI]
 getLineGenerateField [] = []
 getLineGenerateField (x:xs) = k : getLineGenerateField xs where 
            k | visible x == False = Nothing
-             | value x == 1 = Just One
-             | value x == 2 = Just Two
-             | value x == 3 = Just Three
-             | value x == 4 = Just Four
-             | value x == 5 = Just Five
-             | value x == 6 = Just Six
-             | value x == 7 = Just Seven
-             | value x == 8 = Just Eight
-             | value x == 9 = Just Nine
+             | value x == 1 = Just StaticOne
+             | value x == 2 = Just StaticTwo 
+             | value x == 3 = Just StaticThree
+             | value x == 4 = Just StaticFour
+             | value x == 5 = Just StaticFive
+             | value x == 6 = Just StaticSix
+             | value x == 7 = Just StaticSeven
+             | value x == 8 = Just StaticEight
+             | value x == 9 = Just StaticNine
 			  
 
 castIO :: Game -> IO Game
