@@ -96,7 +96,7 @@ drawCell (one, two) win (Just mark)
 -- | Нарисовать фишку.
 drawMark :: Mark -> Picture
 drawMark One = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
-drawMark StaticOne = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "100")
+drawMark StaticOne = translate (-0.32) (-0.25) $ scale 0.01 0.005 (text "1")
 drawMark Two =  translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "2")
 drawMark StaticTwo =  translate (-0.34) (-0.25) $ scale 0.008 0.005 (text "2")
 drawMark Three = translate (-0.38) (-0.25) $ scale 0.01 0.005 (text "3")
@@ -124,12 +124,13 @@ mouseToCell (x, y) = (i, j)
 	
 -- | Обработка событий.
 handleGame :: Event -> Game -> IO Game
-handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = placeMark (mouseToCell mouse) game
+handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = placeMark (mouseToCell mouse) False game
+handleGame (EventKey (MouseButton RightButton) Down _ mouse) game = placeMark (0, 0) True game
 handleGame _ w = castIO w
 
 -- | Поставить фишку и сменить игрока (если возможно).
-placeMark :: (Int, Int) -> Game -> IO Game
-placeMark (i, j) game = do
+placeMark :: (Int, Int) -> Bool -> Game -> IO Game
+placeMark (i, j) isGeneration game = do
    let place Nothing = Just (Just (gamePlayer game))
    let place StaticOne = Nothing
    let place StaticTwo = Nothing
@@ -142,7 +143,7 @@ placeMark (i, j) game = do
    let place StaticNine = Nothing
    let place _       = Just (Just (switchPlayer (gamePlayer game))) 
   
-   if(firstRunning (boardWidth-1) (boardHeight-1) (gameBoard game) == True) then do
+   if(isGeneration == True) then do
       values <- generateSudoku []
       let game = Game (getGenerateField values) One Nothing
       case modifyAt j (modifyAt i place) (gameBoard game) of
