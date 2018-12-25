@@ -57,14 +57,8 @@ drawGame game = do
                    let w = fromIntegral screenWidth  / 2
                    let h = fromIntegral screenHeight / 2
 
-                   if(firstRunning (boardWidth-1) (boardHeight-1) (gameBoard game) == True) then do
-                       values <- generateSudoku []
-                       let game = Game (getGenerateField values) One Nothing
-                       let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
-                       return g
-				   else do
-                        let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
-                        return g
+                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
+                   return g
                 
              
 
@@ -78,6 +72,7 @@ drawGrid = color white (pictures (hs ++ vs))
     n = fromIntegral boardWidth
     m = fromIntegral boardHeight
 
+	
 -- | Нарисовать фишки на игровом поле.
 drawBoard :: Maybe Mark -> Board -> Picture
 drawBoard win board = pictures (map pictures drawCells)
@@ -125,8 +120,23 @@ handleGame _ w = castIO w
 -- | Поставить фишку и сменить игрока (если возможно).
 placeMark :: (Int, Int) -> Game -> IO Game
 placeMark (i, j) game = do
-    let place Nothing = Just (Just (gamePlayer game))
-    let place _       = Just (Just (switchPlayer (gamePlayer game))) 
+   let place Nothing = Just (Just (gamePlayer game))
+   let place _       = Just (Just (switchPlayer (gamePlayer game))) 
+  
+   if(firstRunning (boardWidth-1) (boardHeight-1) (gameBoard game) == True) then do
+      values <- generateSudoku []
+      let game = Game (getGenerateField values) One Nothing
+      case modifyAt j (modifyAt i place) (gameBoard game) of
+       Nothing ->castIO game 
+       Just newBoard -> castIO game
+        { gameBoard  = newBoard
+        , gamePlayer = switchPlayer (gamePlayer game)
+        , gameWinner = winner newBoard
+        }
+					   
+					   
+   else do
+    
 
     case modifyAt j (modifyAt i place) (gameBoard game) of
       Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
