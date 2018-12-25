@@ -90,7 +90,15 @@ drawCell (one, two) win (Just mark)
     = color markColor (drawMark mark)
     where
       markColor
-       | win == Just mark = light orange
+       | mark == StaticOne = light orange
+       | mark == StaticTwo = light orange
+       | mark == StaticThree = light orange
+       | mark == StaticFour = light orange
+       | mark == StaticFive = light orange
+       | mark == StaticSix = light orange
+       | mark == StaticSeven = light orange
+       | mark == StaticEight = light orange
+       | mark == StaticNine = light orange
        | otherwise = white
 
 -- | Нарисовать число.
@@ -143,7 +151,7 @@ placeMark (i, j) isGeneration game = do
    let place StaticNine = Nothing
    let place _       = Just (Just (changeValue (numberValue game))) 
   
-   if(isGeneration == True) then do
+   if (isGeneration == True) then do
       values <- generateSudoku []
       let game = Game (getGenerateField values) One Nothing
       case modifyAt j (modifyAt i place) (gameBoard game) of
@@ -239,7 +247,7 @@ modifyAt i f (x:xs) = case modifyAt (i - 1) f xs of
 -- В этой игре все изменения происходят только по действиям игрока,
 -- поэтому функция обновления — это тождественная функция.
 updateGame :: Float -> Game -> IO Game
-updateGame _ w= castIO w
+updateGame _ w = castIO w
 	
 winnerStreak :: Int
 winnerStreak = 4
