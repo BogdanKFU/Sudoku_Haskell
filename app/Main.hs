@@ -156,28 +156,29 @@ placeMark (i, j) isGeneration game = do
     if(isGeneration == True) then do
       values <- generateSudoku []
       let generates = getGenerateField values
-      let game = Game (generates) One Nothing (generatedField game)
+      let game = Game (generates) One Nothing (getGenerateFieldForCheck values)
       case modifyAt j (modifyAt i place) (gameBoard game) of
        Nothing ->castIO game 
        Just newBoard -> castIO game
         { gameBoard  = newBoard
         , numberValue = changeValue (numberValue game)
         , gameWinner = winner newBoard
-		, generatedField = generates
+		, generatedField = (generatedField game) 
         }
+		
   
     else do
---	   if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
---            writeText("a")
- --           let place _       = Nothing
- --           case modifyAt j (modifyAt i place) (gameBoard game) of
-  --                Nothing ->castIO game  -- если поставить фишку нельзя, ничего не изменится
-  --                Just newBoard -> castIO game
-  --                 { gameBoard  = newBoard
-   --                , numberValue = changeValue (numberValue game)
-   --                , gameWinner = winner newBoard
-   --                }
-	--   else do
+	   if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
+            writeText("WIN")
+            let place _       = Nothing
+            case modifyAt j (modifyAt i place) (gameBoard game) of
+                  Nothing ->castIO game  -- если поставить фишку нельзя, ничего не изменится
+                  Just newBoard -> castIO game
+                   { gameBoard  = newBoard
+                   , numberValue = changeValue (numberValue game)
+                   , gameWinner = winner newBoard
+                   }
+	   else do
              case modifyAt j (modifyAt i place) (gameBoard game) of
                Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
                Just newBoard -> castIO game
@@ -301,6 +302,22 @@ getLineGenerateField (x:xs) = k : getLineGenerateField xs where
              | value x == 8 = Just StaticEight
              | value x == 9 = Just StaticNine
 			  
+getGenerateFieldForCheck:: [[Cell]] -> [[Cell_UI]]
+getGenerateFieldForCheck (x:[]) = [getLineGenerateFieldForCheck x]
+getGenerateFieldForCheck (x:xs) = getLineGenerateFieldForCheck x : getGenerateFieldForCheck xs
+
+getLineGenerateFieldForCheck::[Cell] -> [Cell_UI]
+getLineGenerateFieldForCheck [] = []
+getLineGenerateFieldForCheck (x:xs) = k : getLineGenerateFieldForCheck xs where 
+            k| value x == 1 = Just StaticOne
+             | value x == 2 = Just StaticTwo 
+             | value x == 3 = Just StaticThree
+             | value x == 4 = Just StaticFour
+             | value x == 5 = Just StaticFive
+             | value x == 6 = Just StaticSix
+             | value x == 7 = Just StaticSeven
+             | value x == 8 = Just StaticEight
+             | value x == 9 = Just StaticNine
 
 castIO :: Game -> IO Game
 castIO game = do 
