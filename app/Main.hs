@@ -20,7 +20,7 @@ main = do
 -- =========================================
 
 -- | Виды отметок
-data Mark = One | Two | Three | Four | Five | Six | Seven | Eight | Nine | StaticOne | StaticTwo | StaticThree | StaticFour | StaticFive | StaticSix | StaticSeven | StaticEight | StaticNine
+data Mark = None| One | Two | Three | Four | Five | Six | Seven | Eight | Nine | StaticOne | StaticTwo | StaticThree | StaticFour | StaticFive | StaticSix | StaticSeven | StaticEight | StaticNine
   deriving (Eq, Show)
 
 -- | Клетка игрового поля.
@@ -74,7 +74,7 @@ drawGrid = color white (pictures (hs ++ vs))
     n = fromIntegral boardWidth
     m = fromIntegral boardHeight
 
-	
+
 -- | Нарисовать числа на игровом поле.
 drawBoard :: Maybe Mark -> Board -> Picture
 drawBoard win board = pictures (map pictures drawCells)
@@ -141,21 +141,22 @@ handleGame _ w = castIO w
 -- | Поставить фишку и сменить игрока (если возможно).
 placeMark :: (Int, Int) -> Bool -> Game -> IO Game
 placeMark (i, j) isGeneration game = do
-    let place Nothing = Just (Just (numberValue game))
-    let place StaticOne = Nothing
-    let place StaticTwo = Nothing
-    let place StaticThree = Nothing
-    let place StaticFour = Nothing
-    let place StaticFive = Nothing
-    let place StaticSix = Nothing
-    let place StaticSeven = Nothing
-    let place StaticEight = Nothing
-    let place StaticNine = Nothing
-    let place _       = Just (Just (changeValue (numberValue game))) 
+    let place k | k == Nothing = Just (Just (changeValue None))
+                | k == (Just One) = Just (Just (changeValue One))
+                | k == (Just Two) = Just (Just (changeValue Two))
+                | k == (Just Three) = Just (Just (changeValue Three))
+                | k == (Just Four) = Just (Just (changeValue Four))
+                | k == (Just Five) = Just (Just (changeValue Five))
+                | k == (Just Six) = Just (Just (changeValue Six))
+                | k == (Just Seven) = Just (Just (changeValue Seven))
+                | k == (Just Eight) = Just (Just (changeValue Eight))
+                | k == (Just Nine) = Just (Just (changeValue Nine))
+                | otherwise       = Nothing
   
     if(isGeneration == True) then do
       values <- generateSudoku []
       let generates = getGenerateField values
+      print(generates)
       let game = Game (generates) One Nothing (getGenerateFieldForCheck values)
       case modifyAt j (modifyAt i place) (gameBoard game) of
        Nothing ->castIO game 
@@ -163,21 +164,23 @@ placeMark (i, j) isGeneration game = do
         { gameBoard  = newBoard
         , numberValue = changeValue (numberValue game)
         , gameWinner = winner newBoard
-		, generatedField = (generatedField game) 
+		, generatedField = generatedField game
         }
+
 		
   
     else do
-	   if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
+      -- print(gameBoard game)
+      -- print("----------------")
+       --print(generatedField game)
+       --print("|||||||||||||||||||||||||||||||||||||||")
+       if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
             writeText("WIN")
             let place _       = Nothing
             case modifyAt j (modifyAt i place) (gameBoard game) of
                   Nothing ->castIO game  -- если поставить фишку нельзя, ничего не изменится
                   Just newBoard -> castIO game
-                   { gameBoard  = newBoard
-                   , numberValue = changeValue (numberValue game)
-                   , gameWinner = winner newBoard
-                   }
+                   
 	   else do
              case modifyAt j (modifyAt i place) (gameBoard game) of
                Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
@@ -185,6 +188,7 @@ placeMark (i, j) isGeneration game = do
                 { gameBoard  = newBoard
                 , numberValue = changeValue (numberValue game)
                 , gameWinner = winner newBoard
+				, generatedField = (generatedField game) 
                 }
 
 
@@ -199,6 +203,7 @@ changeValue Six = Seven
 changeValue Seven = Eight
 changeValue Eight = Nine
 changeValue Nine = One
+changeValue None = One
 
 -- | Определить  на игровом поле, если такой есть.
 winner :: Board -> Maybe Mark
@@ -338,6 +343,7 @@ checkLineEquals:: [Cell_UI] -> [Cell_UI] -> Bool
 checkLineEquals [] [] = True
 checkLineEquals (x:xs) (y:ys) = if (x /= y) then False
                                 else checkLineEquals xs ys
+
 
 writeText:: String -> IO()
 writeText a = putStrLn (a)
