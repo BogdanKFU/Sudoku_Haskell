@@ -170,10 +170,10 @@ placeMark (i, j) isGeneration game = do
 		
   
     else do
-      -- print(gameBoard game)
-      -- print("----------------")
-       --print(generatedField game)
-       --print("|||||||||||||||||||||||||||||||||||||||")
+       print(gameBoard game)
+       print("----------------")
+       print(generatedField game)
+       print("|||||||||||||||||||||||||||||||||||||||")
        if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
             writeText("WIN")
             let place _       = Nothing
@@ -341,8 +341,29 @@ checkEquals (x:first) (y:second) = if (checkLineEquals x y) then checkEquals fir
 
 checkLineEquals:: [Cell_UI] -> [Cell_UI] -> Bool
 checkLineEquals [] [] = True
-checkLineEquals (x:xs) (y:ys) = if (x /= y) then False
+checkLineEquals (x:xs) (y:ys) = if (castCellToInt x /= castCellToInt y) then False
                                 else checkLineEquals xs ys
+
+castCellToInt:: Cell_UI -> Int
+castCellToInt (Just One) = 1
+castCellToInt (Just Two) = 2
+castCellToInt (Just Three) = 3
+castCellToInt (Just Four) = 4
+castCellToInt (Just Five) = 5
+castCellToInt (Just Six) = 6
+castCellToInt (Just Seven) = 7
+castCellToInt (Just Eight) = 8
+castCellToInt (Just Nine) = 9
+castCellToInt (Just StaticOne) = 1
+castCellToInt (Just StaticTwo) = 2
+castCellToInt (Just StaticThree) = 3
+castCellToInt (Just StaticFour) = 4
+castCellToInt (Just StaticFive) = 5
+castCellToInt (Just StaticSix) = 6
+castCellToInt (Just StaticSeven) = 7
+castCellToInt (Just StaticEight) = 8
+castCellToInt (Just StaticNine) = 9
+castCellToInt _ = 0
 
 
 writeText:: String -> IO()
