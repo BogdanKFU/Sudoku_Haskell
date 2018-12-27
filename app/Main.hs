@@ -33,7 +33,6 @@ type Board = [[Cell_UI]]
 data Game = Game
   { gameBoard  :: Board       -- ^ Игровое поле.
   , numberValue :: Mark        -- ^ Чей ход?
-  , gameWinner :: Maybe Mark  -- ^ Победитель.
   , generatedField :: Board
   }
 
@@ -42,7 +41,6 @@ initGame :: Game
 initGame = Game
   { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
   , numberValue = One
-  , gameWinner = Nothing
   , generatedField = replicate boardHeight (replicate boardWidth Nothing)
   }
 
@@ -59,11 +57,9 @@ drawGame game = do
                    let w = fromIntegral screenWidth  / 2
                    let h = fromIntegral screenHeight / 2
 
-                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameWinner game) (gameBoard game)]))
+                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameBoard game)]))
                    return g
                 
-             
-
 -- | Сетка игрового поля.
 drawGrid :: Picture
 drawGrid = color white (pictures (hs ++ vs))
@@ -76,19 +72,19 @@ drawGrid = color white (pictures (hs ++ vs))
 
 
 -- | Нарисовать числа на игровом поле.
-drawBoard :: Maybe Mark -> Board -> Picture
-drawBoard win board = pictures (map pictures drawCells)
+drawBoard :: Board -> Picture
+drawBoard board = pictures (map pictures drawCells)
   where
     drawCells = map drawRow (zip [0..] board)
     drawRow (j, row) = map drawCellAt (zip [0..] row)
       where
         drawCellAt (i, cell) = translate (0.5 + i) (0.5 + j)
-          (drawCell (estimate board) win cell)
+          (drawCell (estimate board) cell)
 
 -- | Нарисовать число в клетке поля (если оно там есть).
-drawCell :: (Int, Int) -> Maybe Mark -> Cell_UI -> Picture
-drawCell _ _ Nothing = blank
-drawCell (one, two) win (Just mark)
+drawCell :: (Int, Int) -> Cell_UI -> Picture
+drawCell _ Nothing = blank
+drawCell (one, two) (Just mark)
     = color markColor (drawMark mark)
     where
       markColor
@@ -157,18 +153,15 @@ placeMark (i, j) isGeneration game = do
       values <- generateSudoku []
       let generates = getGenerateField values
       print(generates)
-      let game = Game (generates) One Nothing (getGenerateFieldForCheck values)
+      let game = Game (generates) One (getGenerateFieldForCheck values)
       case modifyAt j (modifyAt i place) (gameBoard game) of
        Nothing ->castIO game 
        Just newBoard -> castIO game
         { gameBoard  = newBoard
         , numberValue = changeValue (numberValue game)
-        , gameWinner = winner newBoard
 		, generatedField = generatedField game
         }
 
-		
-  
     else do
        print(gameBoard game)
        print("----------------")
@@ -187,12 +180,11 @@ placeMark (i, j) isGeneration game = do
                Just newBoard -> castIO game
                 { gameBoard  = newBoard
                 , numberValue = changeValue (numberValue game)
-                , gameWinner = winner newBoard
 				, generatedField = (generatedField game) 
                 }
 
 
--- | Сменить текущего игрока.
+-- | Сменить текущее значение
 changeValue :: Mark -> Mark
 changeValue One = Two
 changeValue Two = Three
@@ -205,46 +197,9 @@ changeValue Eight = Nine
 changeValue Nine = One
 changeValue None = One
 
--- | Определить  на игровом поле, если такой есть.
-winner :: Board -> Maybe Mark
-winner board = getFirstWinner (map lineWinner allLines)
-  where
-    allLines = rows ++ cols ++ diagonals
-    rows = board
-    cols = transpose board
-    diagonals = lefts board ++ rights board
-
-    lefts b = leftTops b ++ leftBottoms b
-    rights = lefts . reverse
-
-    leftTops    = transpose . zipWith drop [0..]
-    leftBottoms = drop 1 . leftTops . transpose
-
-    getFirstWinner :: [Maybe a] -> Maybe a
-    getFirstWinner = foldr first Nothing
-      where
-        first Nothing y = y
-        first x       _ = x
-
-    lineWinner :: Eq a => [Maybe a] -> Maybe a
-    lineWinner = winnerSegment . segments
-
-    winnerSegment :: [(Maybe a, Int)] -> Maybe a
-    winnerSegment = foldr compareSegments Nothing
-      where
-        compareSegments (Just x, n) _
-          | n >= winnerStreak = Just x
-        compareSegments _   y = y
-
-    segments :: Eq a => [a] -> [(a, Int)]
-    segments [] = []
-    segments (x:xs) = segment : rest
-      where
-        segment = (x, 1 + length (takeWhile (== x) xs))
-        rest    = segments (dropWhile (== x) xs)
 
 -- | Оценить состояние игрового поля, а именно
--- вычислить сумму длин сегментов для крестиков и ноликов.
+-- вычислить сумму длин сегментов.
 -- Сегменты длины 1 не учитываются при подсчёте.
 estimate :: Board -> (Int, Int)
 estimate _ = (0, 0)
@@ -266,9 +221,7 @@ modifyAt i f (x:xs) = case modifyAt (i - 1) f xs of
 -- поэтому функция обновления — это тождественная функция.
 updateGame :: Float -> Game -> IO Game
 updateGame _ w = castIO w
-	
-winnerStreak :: Int
-winnerStreak = 4
+
 	
 boardWidth :: Int
 boardWidth = 9  -- width board
@@ -288,7 +241,7 @@ screenWidth  = cellSize * boardWidth
 screenHeight :: Int
 screenHeight = cellSize * boardHeight				  
 
-
+--Преобразование Сell to Cell_UI
 getGenerateField:: [[Cell]] -> [[Cell_UI]]
 getGenerateField (x:[]) = [getLineGenerateField x]
 getGenerateField (x:xs) = getLineGenerateField x : getGenerateField xs
@@ -328,22 +281,25 @@ castIO :: Game -> IO Game
 castIO game = do 
                 return game
 
+--Проверка имеются ли еще пустые клетки на поле
 hasEmptyCells ::Int -> Int -> Board -> Bool
 hasEmptyCells 0 0 _ =  False
 hasEmptyCells x 0 board = hasEmptyCells (x-1) (boardHeight-1) board
 hasEmptyCells x y board = if(board !! x !! y /= Nothing) then hasEmptyCells x (y-1) board
                          else True
-						 
+	
+--Сравнение значений двух двумерных листов	
 checkEquals:: [[Cell_UI]]->[[Cell_UI]] ->Bool
 checkEquals [] [] = True
 checkEquals (x:first) (y:second) = if (checkLineEquals x y) then checkEquals first second
                                                         else False
-
+--Сравнение значений двух листов
 checkLineEquals:: [Cell_UI] -> [Cell_UI] -> Bool
 checkLineEquals [] [] = True
 checkLineEquals (x:xs) (y:ys) = if (castCellToInt x /= castCellToInt y) then False
                                 else checkLineEquals xs ys
 
+--Получить значение из Cell_UI в виде Int
 castCellToInt:: Cell_UI -> Int
 castCellToInt (Just One) = 1
 castCellToInt (Just Two) = 2
