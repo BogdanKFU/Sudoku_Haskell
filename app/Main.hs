@@ -5,6 +5,8 @@ import Graphics.Gloss
 import Sudoku
 import Types
 import Data.List (transpose)
+import Graphics.Gloss.Data.Picture
+import Graphics.Gloss.Data.Bitmap
 
 -- Это главный метод для запуска программы
 main :: IO ()
@@ -57,9 +59,15 @@ drawGame game = do
                    let w = fromIntegral screenWidth  / 2
                    let h = fromIntegral screenHeight / 2
 
-                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameBoard game)]))
+                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameBoard game), drawButton, drawButtonText]))
                    return g
-                
+
+drawButton :: Picture
+drawButton = color white (translate (10.9) (6.0) $ scale 0.01 0.005 (rectangleSolid 350.0 150.0))
+
+drawButtonText :: Picture
+drawButtonText = color black (translate (9.5) (5.81) $ scale 0.004 0.005 (text "Start game"))
+
 -- | Сетка игрового поля.
 drawGrid :: Picture
 drawGrid = color white (pictures (hs ++ vs))
@@ -120,6 +128,12 @@ drawMark StaticEight = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "8")
 drawMark Nine= translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
 drawMark StaticNine = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
 
+-- на вход подается точка и 4 координаты для ограничения области
+isInRect :: Point -> (Float, Float) -> (Float, Float) -> Bool
+isInRect (p1, p2) x1 x2 = if p1 < fst x1 && p2 < snd x1 && p1 > fst x2 && p2 > snd x2 then True else False
+
+isStartButton :: Point -> Bool
+isStartButton point = isInRect point (307.0, 100.0) (0.0, 55.0)
 
 -- | Получить координаты клетки под мышкой.
 mouseToCell :: Point -> (Int, Int)
@@ -130,10 +144,17 @@ mouseToCell (x, y) = (i, j)
 	
 -- | Обработка событий.
 handleGame :: Event -> Game -> IO Game
-handleGame (EventKey (Char 's') Up _ _) game = placeMark (-1, -1) True game
-handleGame (EventKey (Char 'ы') Up _ _) game = placeMark (-1, -1) True game
-handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = placeMark (mouseToCell mouse) False game
+handleGame (EventKey (Char 's') Up _ _) game = placeMark (-1, -1) True game	
+handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = handleLeftButtonDown mouse False game
 handleGame _ w = castIO w
+
+handleLeftButtonDown :: Point -> Bool -> Game -> IO Game
+handleLeftButtonDown mouse isGeneration game = if fst (mouseToCell mouse) > gameSize || snd (mouseToCell mouse) > gameSize then
+                            if isStartButton mouse then placeMark (-1, -1) True game
+							else
+							   placeMark (mouseToCell mouse) False game
+                       else
+                          placeMark (mouseToCell mouse) False game
 
 -- | Поставить фишку и сменить игрока (если возможно).
 placeMark :: (Int, Int) -> Bool -> Game -> IO Game
@@ -236,7 +257,7 @@ cellSize = 50
 
 -- | Ширина экрана в пикселях.
 screenWidth :: Int
-screenWidth  = cellSize * boardWidth
+screenWidth  = cellSize * boardWidth + 200
 
 -- | Высота экрана в пикселях.
 screenHeight :: Int
