@@ -165,6 +165,51 @@ highlight cell game = Game
   , highlightedCell = cell
   }
 
+-- =========================================
+-- Изменение значений с помощью клавиш 1-9
+-- =========================================
+
+markHighlighted :: Game -> Maybe Mark -> Game
+markHighlighted game mark = markCell
+  where
+    element = ((gameBoard game) !! i) !! j
+    i = fst (highlightedCell game)
+    j = snd (highlightedCell game)
+    markCell = case element of
+                Just StaticOne -> game
+                Just StaticTwo -> game
+                Just StaticThree -> game
+                Just StaticFour -> game
+                Just StaticFive -> game
+                Just StaticSix -> game
+                Just StaticSeven -> game
+                Just StaticEight -> game
+                Just StaticNine -> game
+                Just None -> Game
+                       { gameBoard  = replaceElementForDoubleList (gameBoard game) j i mark
+                       , numberValue = numberValue game
+                       , generatedField = generatedField game
+                       , highlightedCell = highlightedCell game
+                       }
+                otherwise -> Game
+                       { gameBoard  = replaceElementForDoubleList (gameBoard game) j i mark
+                       , numberValue = numberValue game
+                       , generatedField = generatedField game
+                       , highlightedCell = highlightedCell game
+                       }
+
+-- =========================================
+-- Сообщение "You won"
+-- =========================================
+
+-- При закрытии окна GHCI тоже закрывается
+wonMessage :: IO()
+wonMessage = do
+				display (InWindow "You won" (500, 300) (200, 200)) white drawWonMessage
+
+drawWonMessage :: Picture
+drawWonMessage = color black (translate (-100.0) (0.0) $ scale 0.4 0.5 (text "You won"))
+
 -- на вход подается точка и 4 координаты для ограничения области
 isInRect :: Point -> (Float, Float) -> (Float, Float) -> Bool
 isInRect (p1, p2) x1 x2 = if p1 < fst x1 && p2 < snd x1 && p1 > fst x2 && p2 > snd x2 then True else False
@@ -187,6 +232,30 @@ handleGame (EventKey (SpecialKey KeyUp) Up _ _) game = castIO (highlight (move g
 handleGame (EventKey (SpecialKey KeyDown) Up _ _) game = castIO (highlight (move game DownMove) game)
 handleGame (EventKey (SpecialKey KeyRight) Up _ _) game = castIO (highlight (move game RightMove) game)
 handleGame (EventKey (SpecialKey KeyLeft) Up _ _) game = castIO (highlight (move game LeftMove) game)
+
+-- =========================================
+-- Обработчики для боковых клавиш 1-9
+-- =========================================
+handleGame (EventKey (SpecialKey KeyPad1) Up _ _) game = castIO (markHighlighted game (Just One))
+handleGame (EventKey (SpecialKey KeyPad2) Up _ _) game = castIO (markHighlighted game (Just Two))
+handleGame (EventKey (SpecialKey KeyPad3) Up _ _) game = castIO (markHighlighted game (Just Three))
+handleGame (EventKey (SpecialKey KeyPad4) Up _ _) game = castIO (markHighlighted game (Just Four))
+handleGame (EventKey (SpecialKey KeyPad5) Up _ _) game = castIO (markHighlighted game (Just Five))
+handleGame (EventKey (SpecialKey KeyPad6) Up _ _) game = castIO (markHighlighted game (Just Six))
+handleGame (EventKey (SpecialKey KeyPad7) Up _ _) game = castIO (markHighlighted game (Just Seven))
+handleGame (EventKey (SpecialKey KeyPad8) Up _ _) game = castIO (markHighlighted game (Just Eight))
+handleGame (EventKey (SpecialKey KeyPad9) Up _ _) game = castIO (markHighlighted game (Just Nine))
+
+handleGame (EventKey (Char '1') Up _ _) game = castIO (markHighlighted game (Just One))
+handleGame (EventKey (Char '2') Up _ _) game = castIO (markHighlighted game (Just Two))
+handleGame (EventKey (Char '3') Up _ _) game = castIO (markHighlighted game (Just Three))
+handleGame (EventKey (Char '4') Up _ _) game = castIO (markHighlighted game (Just Four))
+handleGame (EventKey (Char '5') Up _ _) game = castIO (markHighlighted game (Just Five))
+handleGame (EventKey (Char '6') Up _ _) game = castIO (markHighlighted game (Just Six))
+handleGame (EventKey (Char '7') Up _ _) game = castIO (markHighlighted game (Just Seven))
+handleGame (EventKey (Char '8') Up _ _) game = castIO (markHighlighted game (Just Eight))
+handleGame (EventKey (Char '9') Up _ _) game = castIO (markHighlighted game (Just Nine))
+
 handleGame _ w = castIO w
 
 handleLeftButtonDown :: Point -> Bool -> Game -> IO Game
@@ -232,12 +301,13 @@ placeMark (i, j) isGeneration game = do
        print(generatedField game)
        print("|||||||||||||||||||||||||||||||||||||||")
        if((hasEmptyCells (boardWidth-1) (boardHeight-1) (gameBoard game)== False) &&(checkEquals (generatedField game) (gameBoard game))== True) then do
+            wonMessage
             writeText("WIN")
             let place _       = Nothing
             case modifyAt j (modifyAt i place) (gameBoard game) of
                   Nothing ->castIO game  -- если поставить фишку нельзя, ничего не изменится
                   Just newBoard -> castIO game
-                   
+            
 	   else do
              case modifyAt j (modifyAt i place) (gameBoard game) of
                Nothing -> castIO game -- если поставить фишку нельзя, ничего не изменится
