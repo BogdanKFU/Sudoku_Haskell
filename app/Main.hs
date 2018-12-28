@@ -47,9 +47,8 @@ initGame = Game
   { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
   , numberValue = One
   , generatedField = replicate boardHeight (replicate boardWidth Nothing)
-  , highlightedCell = (-1, -1)
+  , highlightedCell = (0, 0)
   }
-
 
 -- =========================================
 -- Отрисовка игры
@@ -172,7 +171,7 @@ highlight cell game = Game
 markHighlighted :: Game -> Maybe Mark -> Game
 markHighlighted game mark = markCell
   where
-    element = ((gameBoard game) !! i) !! j
+    element = ((gameBoard game) !! j) !! i
     i = fst (highlightedCell game)
     j = snd (highlightedCell game)
     markCell = case element of
@@ -226,7 +225,7 @@ mouseToCell (x, y) = (i, j)
 	
 -- | Обработка событий.
 handleGame :: Event -> Game -> IO Game
-handleGame (EventKey (Char 's') Up _ _) game = placeMark (-1, -1) True game	
+handleGame (EventKey (Char 's') Up _ _) game = placeMark (0, 0) True game	
 handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = handleLeftButtonDown mouse False game
 handleGame (EventKey (SpecialKey KeyUp) Up _ _) game = castIO (highlight (move game UpMove) game)
 handleGame (EventKey (SpecialKey KeyDown) Up _ _) game = castIO (highlight (move game DownMove) game)
@@ -260,7 +259,7 @@ handleGame _ w = castIO w
 
 handleLeftButtonDown :: Point -> Bool -> Game -> IO Game
 handleLeftButtonDown mouse isGeneration game = if fst (mouseToCell mouse) > gameSize || snd (mouseToCell mouse) > gameSize then
-                            if isStartButton mouse then placeMark (-1, -1) True game
+                            if isStartButton mouse then placeMark (0, 0) True game
 							else
 							   placeMark (mouseToCell mouse) False game
                        else
@@ -285,7 +284,7 @@ placeMark (i, j) isGeneration game = do
       values <- generateSudoku []
       let generates = getGenerateField values
       print(generates)
-      let game = Game (generates) One (getGenerateFieldForCheck values) (-1, -1)
+      let game = Game (generates) One (getGenerateFieldForCheck values) (0, 0)
       case modifyAt j (modifyAt i place) (gameBoard game) of
        Nothing ->castIO game 
        Just newBoard -> castIO game
