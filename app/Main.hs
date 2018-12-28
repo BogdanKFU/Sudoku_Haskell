@@ -31,11 +31,14 @@ type Cell_UI = Maybe Mark
 -- | Игровое поле.
 type Board = [[Cell_UI]]
 
+data MoveDirection = UpMove | DownMove | RightMove | LeftMove
+
 -- | Состояние игры.
 data Game = Game
   { gameBoard  :: Board       -- ^ Игровое поле.
   , numberValue :: Mark        -- ^ Чей ход?
   , generatedField :: Board
+  , highlightedCell :: (Int, Int)
   }
 
 -- | Начальное состояние игры.
@@ -44,6 +47,7 @@ initGame = Game
   { gameBoard  = replicate boardHeight (replicate boardWidth Nothing)
   , numberValue = One
   , generatedField = replicate boardHeight (replicate boardWidth Nothing)
+  , highlightedCell = (-1, -1)
   }
 
 
@@ -59,7 +63,7 @@ drawGame game = do
                    let w = fromIntegral screenWidth  / 2
                    let h = fromIntegral screenHeight / 2
 
-                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard (gameBoard game), drawButton, drawButtonText]))
+                   let g = translate (-w) (-h) (scale c c (pictures [ drawGrid, drawBoard game, drawButton, drawButtonText]))
                    return g
 
 drawButton :: Picture
@@ -80,22 +84,25 @@ drawGrid = color white (pictures (hs ++ vs))
 
 
 -- | Нарисовать числа на игровом поле.
-drawBoard :: Board -> Picture
-drawBoard board = pictures (map pictures drawCells)
+drawBoard :: Game -> Picture
+drawBoard game = pictures (map pictures drawCells)
   where
-    drawCells = map drawRow (zip [0..] board)
+    drawCells = map drawRow (zip [0..] (gameBoard game))
     drawRow (j, row) = map drawCellAt (zip [0..] row)
       where
         drawCellAt (i, cell) = translate (0.5 + i) (0.5 + j)
-          (drawCell (estimate board) cell)
+          (drawCell (estimate (gameBoard game)) cell isHighlighted)
+          where
+            isHighlighted = if round i == fst (highlightedCell game) && round j == snd (highlightedCell game) then True else False
 
 -- | Нарисовать число в клетке поля (если оно там есть).
-drawCell :: (Int, Int) -> Cell_UI -> Picture
-drawCell _ Nothing = blank
-drawCell (one, two) (Just mark)
+drawCell :: (Int, Int) -> Cell_UI -> Bool -> Picture
+drawCell _ Nothing _ = blank
+drawCell (one, two) (Just mark) highlighted
     = color markColor (drawMark mark)
     where
       markColor
+       | highlighted == True = light green
        | mark == StaticOne = light orange
        | mark == StaticTwo = light orange
        | mark == StaticThree = light orange
@@ -128,6 +135,36 @@ drawMark StaticEight = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "8")
 drawMark Nine= translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
 drawMark StaticNine = translate (-0.32) (-0.25) $ scale 0.008 0.005 (text "9")
 
+-- =========================================
+-- Перемещение с помощью стрелок
+-- =========================================
+
+move :: Game -> MoveDirection -> (Int, Int)
+move game direction = checkI (checkJ (moveTo highlighted))
+  where
+    highlighted = highlightedCell game
+    moveTo (i, j) = case direction of
+                       UpMove -> (i, j + 1)
+                       DownMove -> (i, j - 1)
+                       RightMove -> (i + 1, j)
+                       LeftMove -> (i - 1, j)
+    checkI (i, j) = case i of
+               -1 -> (0, j)
+               9 -> (8, j)
+               otherwise -> (i, j)
+    checkJ (i, j) = case j of
+               -1 -> (i, 0)
+               9 -> (i, 8)
+               otherwise -> (i, j)
+-- Подсветка
+highlight :: (Int, Int) -> Game -> Game
+highlight cell game = Game
+  { gameBoard  = gameBoard game
+  , numberValue = numberValue game
+  , generatedField = generatedField game
+  , highlightedCell = cell
+  }
+
 -- на вход подается точка и 4 координаты для ограничения области
 isInRect :: Point -> (Float, Float) -> (Float, Float) -> Bool
 isInRect (p1, p2) x1 x2 = if p1 < fst x1 && p2 < snd x1 && p1 > fst x2 && p2 > snd x2 then True else False
@@ -146,6 +183,10 @@ mouseToCell (x, y) = (i, j)
 handleGame :: Event -> Game -> IO Game
 handleGame (EventKey (Char 's') Up _ _) game = placeMark (-1, -1) True game	
 handleGame (EventKey (MouseButton LeftButton) Down _ mouse) game = handleLeftButtonDown mouse False game
+handleGame (EventKey (SpecialKey KeyUp) Up _ _) game = castIO (highlight (move game UpMove) game)
+handleGame (EventKey (SpecialKey KeyDown) Up _ _) game = castIO (highlight (move game DownMove) game)
+handleGame (EventKey (SpecialKey KeyRight) Up _ _) game = castIO (highlight (move game RightMove) game)
+handleGame (EventKey (SpecialKey KeyLeft) Up _ _) game = castIO (highlight (move game LeftMove) game)
 handleGame _ w = castIO w
 
 handleLeftButtonDown :: Point -> Bool -> Game -> IO Game
@@ -175,13 +216,14 @@ placeMark (i, j) isGeneration game = do
       values <- generateSudoku []
       let generates = getGenerateField values
       print(generates)
-      let game = Game (generates) One (getGenerateFieldForCheck values)
+      let game = Game (generates) One (getGenerateFieldForCheck values) (-1, -1)
       case modifyAt j (modifyAt i place) (gameBoard game) of
        Nothing ->castIO game 
        Just newBoard -> castIO game
         { gameBoard  = newBoard
         , numberValue = changeValue (numberValue game)
 		, generatedField = generatedField game
+        , highlightedCell = highlightedCell game
         }
 
     else do
@@ -203,6 +245,7 @@ placeMark (i, j) isGeneration game = do
                 { gameBoard  = newBoard
                 , numberValue = changeValue (numberValue game)
 				, generatedField = (generatedField game) 
+                , highlightedCell = highlightedCell game
                 }
 
 
@@ -299,6 +342,7 @@ getLineGenerateFieldForCheck (x:xs) = k : getLineGenerateFieldForCheck xs where
              | value x == 8 = Just StaticEight
              | value x == 9 = Just StaticNine
 
+			 
 castIO :: Game -> IO Game
 castIO game = do 
                 return game
